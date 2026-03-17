@@ -3,6 +3,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <numa.h>
+#include "grpc_client.hpp"
+#include <cstdlib>
+#include <numa.h>
 
 #ifdef __linux__
 #include <sched.h>
@@ -45,8 +48,12 @@ void Runtime::worker_task(int id) {
         m.cpu_id = id;
         m.cpu_usage = rand() % 100;
 
-        std::cout << "[Runtime] CPU " << m.cpu_id
-                  << " Usage: " << m.cpu_usage << "%\n";
+        GrpcClient client(
+            grpc::CreateChannel("localhost:50051",
+            grpc::InsecureChannelCredentials())
+        );
+
+        client.send(m.cpu_id, m.cpu_usage);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
