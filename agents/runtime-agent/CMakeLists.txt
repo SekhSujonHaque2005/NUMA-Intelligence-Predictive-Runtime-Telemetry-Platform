@@ -4,6 +4,6 @@ project(runtime_agent)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(runtime_agent src/main.cpp)
+add_executable(runtime_agent src/main.cpp src/runtime.cpp)
 
 target_link_libraries(runtime_agent numa)

@@ -1,24 +1,18 @@
-use sysinfo::System;
+mod metrics;
+mod collector;
+
 use std::{thread, time::Duration};
 
 fn main() {
-    let mut sys = System::new_all();
-
     loop {
-        sys.refresh_all();
+        let metrics = collector::collect_metrics();
 
-        println!("--- System Telemetry ---");
-
-        println!("Total memory: {:.2} GB", sys.total_memory() as f64 / 1024.0 / 1024.0);
-        println!("Used memory : {:.2} GB", sys.used_memory() as f64 / 1024.0 / 1024.0);
-
-        let cpus = sys.cpus();
-        for i in 0..cpus.len() {
-            println!("CPU {} usage: {:.2}%", i, cpus[i].cpu_usage());
+        for m in metrics {
+            println!("[Rust Agent] CPU {} Usage: {}%", m.cpu_id, m.cpu_usage);
         }
 
-        println!("-------------------------");
+        println!("---------------------------");
 
-        thread::sleep(Duration::from_secs(2));
+        thread::sleep(Duration::from_secs(1));
     }
 }

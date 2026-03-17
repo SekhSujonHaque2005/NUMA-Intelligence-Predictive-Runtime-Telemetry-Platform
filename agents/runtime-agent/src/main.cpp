@@ -1,18 +1,15 @@
-#include <iostream>
-#include <numa.h>
+#include "runtime.hpp"
+#include <thread>
+#include <chrono>
 
 int main() {
+    Runtime runtime(4);
 
-    if (numa_available() == -1) {
-        std::cout << "NUMA not supported. Running in single-node mode.\n";
-        std::cout << "CPU analysis only.\n";
-        return 0;
-    }
+    runtime.start();
 
-    int nodes = numa_max_node() + 1;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    std::cout << "NUMA system detected\n";
-    std::cout << "Total nodes: " << nodes << std::endl;
+    runtime.stop();
 
     return 0;
 }

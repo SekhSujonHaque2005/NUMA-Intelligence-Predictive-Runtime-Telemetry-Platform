@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package runtime;
+
+// This represents a single metric data point
+message Metrics {
+  string source = 1;   // "cpp" or "rust"
+  int32 cpu_id = 2;
+  float cpu_usage = 3;
+}
+
+// Service definition
+service RuntimeService {
+  rpc SendMetrics (Metrics) returns (Metrics);
+}
