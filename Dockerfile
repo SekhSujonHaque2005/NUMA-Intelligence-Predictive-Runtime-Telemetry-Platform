@@ -17,7 +17,7 @@ WORKDIR /build/agents/runtime-agent
 RUN mkdir build && cd build && cmake .. && make
 
 # --- Stage 2: Build Rust Agent ---
-FROM rust:1.75-slim-bookworm AS rust-builder
+FROM rust:latest AS rust-builder
 RUN apt-get update && apt-get install -y \
     protobuf-compiler \
     libnuma-dev \
