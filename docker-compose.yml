@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # The Monolith: Gateway + C++ Agent + Rust Agent
+  numa-monolith:
+    build: .
+    ports:
+      - "3001:3001"
+      - "50051:50051"
+    environment:
+      - DATABASE_URL=postgresql://postgres:your_password@postgres:5432/runtime_metrics
+      - GATEWAY_ADDR=localhost:50051
+    depends_on:
+      - postgres
+
+  # The Local Database (Used only for local testing)
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=runtime_metrics
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./databases/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:

@@ -1,9 +1,16 @@
 use sysinfo::System;
 use crate::metrics::Metrics;
+use std::{thread, time::Duration};
 
 pub fn collect_metrics() -> Vec<Metrics> {
     let mut system = System::new_all();
-    system.refresh_all();
+
+    // First refresh establishes a baseline
+    system.refresh_cpu_usage();
+    // Wait briefly so sysinfo can compute the delta
+    thread::sleep(Duration::from_millis(200));
+    // Second refresh calculates actual usage
+    system.refresh_cpu_usage();
 
     let mut result = Vec::new();
 

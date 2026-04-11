@@ -48,8 +48,11 @@ void Runtime::worker_task(int id) {
         m.cpu_id = id;
         m.cpu_usage = rand() % 100;
 
+        const char* gateway_env = std::getenv("GATEWAY_ADDR");
+        std::string gateway_addr = gateway_env ? gateway_env : "localhost:50051";
+
         GrpcClient client(
-            grpc::CreateChannel("localhost:50051",
+            grpc::CreateChannel(gateway_addr,
             grpc::InsecureChannelCredentials())
         );
 

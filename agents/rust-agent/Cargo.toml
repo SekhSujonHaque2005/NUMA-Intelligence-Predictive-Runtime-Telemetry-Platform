@@ -8,3 +8,8 @@ sysinfo = "0.30"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tonic = "0.11"
+prost = "0.12"
+
+[build-dependencies]
+tonic-build = "0.11"

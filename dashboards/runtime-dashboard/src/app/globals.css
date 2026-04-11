@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-accents-1: #111;
+  --color-accents-2: #444;
+  --color-accents-3: #ccc;
+  --color-accents-4: #eee;
+  --color-accents-5: #fff;
+  --color-accents-6: #fff;
+  --color-accents-7: #fafafa;
+  --color-accents-8: #ffffff;
+  
+  --color-geist-success: #0070f3;
+  --color-geist-error: #ee0000;
+  --color-geist-warning: #f5a623;
+  
+  --spacing-header: 64px;
+}
+
+@layer base {
+  *, body {
+    font-family: 'Times New Roman', Times, serif !important;
+    @apply antialiased selection:bg-accents-2;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.5;
+    
+    /* Subtle Grid Background */
+    background-image: 
+      linear-gradient(to right, #111 1px, transparent 1px),
+      linear-gradient(to bottom, #111 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer components {
+  .vercel-card {
+    @apply bg-background/60 border border-accents-2 rounded-lg transition-all duration-200 backdrop-blur-sm;
+  }
+  
+  .vercel-card:hover {
+    @apply border-accents-4 bg-accents-1/40 shadow-[0_4px_30px_rgba(0,0,0,0.4)];
+  }
+
+  .vercel-btn-primary {
+    @apply bg-foreground text-background font-medium py-2 px-4 rounded-md hover:bg-accents-7 transition-colors;
+  }
+
+  .vercel-btn-secondary {
+    @apply bg-accents-2 text-foreground font-medium py-2 px-4 rounded-md hover:bg-accents-3 transition-colors border border-accents-3;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-accents-2;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-accents-3;
+}
