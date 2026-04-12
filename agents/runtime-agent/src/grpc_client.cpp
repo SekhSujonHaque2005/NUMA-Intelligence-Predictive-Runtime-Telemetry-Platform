@@ -13,5 +13,8 @@ void GrpcClient::send(int cpu_id, float usage) {
     runtime::Metrics reply;
     grpc::ClientContext context;
 
-    stub_->SendMetrics(&context, request, &reply);
+    grpc::Status status = stub_->SendMetrics(&context, request, &reply);
+    if (!status.ok()) {
+        std::cerr << "❌ C++ Agent: SendMetrics failed: " << status.error_message() << std::endl;
+    }
 }

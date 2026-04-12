@@ -58,6 +58,8 @@ void Runtime::worker_task(int id) {
         grpc::InsecureChannelCredentials())
     );
 
+    std::cout << "✅ C++ Agent: Initialized connection to " << gateway_addr << std::endl;
+
     while (running) {
         Metrics m;
         m.cpu_id = id;
