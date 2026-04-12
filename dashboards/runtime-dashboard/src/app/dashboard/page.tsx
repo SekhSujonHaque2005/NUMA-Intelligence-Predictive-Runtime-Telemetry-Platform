@@ -15,7 +15,9 @@ import {
   Globe,
   Lock,
   ArrowRight,
-  Monitor
+  Monitor,
+  Sun,
+  Moon
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -81,6 +83,24 @@ export default function Dashboard() {
   const metricsRef = useRef<Metric[]>([]);
   const [history, setHistory] = useState<{labels: string[], cpp: number[], rust: number[]}>({labels: [], cpp: [], rust: []});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  // Handle Theme Switch
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("numa-theme") as "light" | "dark";
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setTheme("dark");
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.className = theme;
+    localStorage.setItem("numa-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === "light" ? "dark" : "light");
 
   // Sync ref with state
   useEffect(() => {
@@ -227,6 +247,17 @@ export default function Dashboard() {
           </nav>
         </div>
         <div className="flex items-center gap-6">
+           <button 
+             onClick={toggleTheme}
+             className="w-10 h-10 flex items-center justify-center rounded-full border border-accents-2 bg-accents-1 hover:bg-accents-2 transition-all group"
+             title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+           >
+             {theme === 'light' ? (
+               <Moon size={16} className="text-accents-5 group-hover:scale-110 transition-transform" />
+             ) : (
+               <Sun size={16} className="text-accents-5 group-hover:scale-110 transition-transform" />
+             )}
+           </button>
            <div className="flex items-center gap-3 px-4 py-2 bg-geist-success/10 border border-geist-success/30 rounded-full text-[10px] font-black italic text-geist-success">
               <div className="w-2 h-2 rounded-full bg-geist-success animate-pulse" />
               SYSTEM_READY
