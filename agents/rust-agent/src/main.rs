@@ -14,9 +14,20 @@ pub mod runtime {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🚀 Starting Rust Telemetry Agent...");
     
-    // Connect to the gRPC gateway
+    // Connect to the gRPC gateway with retries
     let gateway_addr = std::env::var("GATEWAY_ADDR").unwrap_or_else(|_| "http://localhost:50051".to_string());
-    let mut client = RuntimeServiceClient::connect(gateway_addr).await?;
+    
+    let client = loop {
+        match RuntimeServiceClient::connect(gateway_addr.clone()).await {
+            Ok(c) => break c,
+            Err(e) => {
+                eprintln!("⏳ Waiting for gRPC Gateway... ({})", e);
+                tokio::time::sleep(Duration::from_secs(2)).await;
+            }
+        }
+    };
+    
+    let mut client = client;
     println!("✅ Connected to gRPC Gateway");
 
     loop {
