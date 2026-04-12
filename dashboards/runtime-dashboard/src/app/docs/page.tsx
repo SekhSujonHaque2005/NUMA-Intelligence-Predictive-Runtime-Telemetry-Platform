@@ -40,27 +40,6 @@ export default function WhitepaperPortal() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-serif selection:bg-accents-2">
-      {/* Premium Header */}
-      <nav className="h-[80px] border-b border-accents-2 flex items-center justify-between px-10 sticky top-0 bg-background/90 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-foreground rounded flex items-center justify-center">
-              <Activity size={16} className="text-background" strokeWidth={3} />
-            </div>
-            <span className="font-bold tracking-tighter text-2xl uppercase italic">NUMA Intelligence</span>
-          </Link>
-          <div className="h-6 w-[1px] bg-accents-2" />
-          <nav className="hidden md:flex items-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-accents-5">
-             <Link href="/dashboard" className="hover:text-foreground transition-all">Platform</Link>
-             <Link href="/simulator" className="hover:text-foreground transition-all">Simulation</Link>
-             <Link href="/docs" className="text-foreground transition-all underline underline-offset-8 decoration-foreground">Whitepapers</Link>
-          </nav>
-        </div>
-        <Link href="/dashboard" className="vercel-btn-primary px-8 py-2.5 text-[11px] uppercase font-black tracking-widest flex items-center gap-3">
-           Launch Platform <ArrowRight size={14} />
-        </Link>
-      </nav>
-
       <main className="max-w-[1700px] mx-auto border-x border-accents-2 min-h-[calc(100vh-80px)]">
         {/* Hero Segment */}
         <section className="p-24 border-b border-accents-2 text-center relative overflow-hidden">

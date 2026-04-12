@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 import { 
   Activity as ActivityIcon, 
   Cpu, 
@@ -15,9 +16,7 @@ import {
   Globe,
   Lock,
   ArrowRight,
-  Monitor,
-  Sun,
-  Moon
+  Monitor
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -83,24 +82,7 @@ export default function Dashboard() {
   const metricsRef = useRef<Metric[]>([]);
   const [history, setHistory] = useState<{labels: string[], cpp: number[], rust: number[]}>({labels: [], cpp: [], rust: []});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-
-  // Handle Theme Switch
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("numa-theme") as "light" | "dark";
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-    }
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.className = theme;
-    localStorage.setItem("numa-theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme(prev => prev === "light" ? "dark" : "light");
+  const { theme } = useTheme();
 
   // Sync ref with state
   useEffect(() => {
@@ -212,7 +194,9 @@ export default function Dashboard() {
       tooltip: {
         mode: 'index' as const,
         intersect: false,
-        backgroundColor: '#000',
+        backgroundColor: theme === 'dark' ? '#fff' : '#000',
+        titleColor: theme === 'dark' ? '#000' : '#fff',
+        bodyColor: theme === 'dark' ? '#000' : '#fff',
         titleFont: { family: 'Times New Roman' },
         bodyFont: { family: 'Times New Roman' },
       },
@@ -230,41 +214,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-accents-2 font-serif bg-background text-foreground">
-      {/* Navigation Header */}
-      <nav className="h-[80px] border-b border-accents-2 flex items-center justify-between px-10 sticky top-0 bg-background/90 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-foreground rounded flex items-center justify-center">
-              <ActivityIcon size={16} className="text-background" strokeWidth={3} />
-            </div>
-            <span className="font-bold tracking-tighter text-2xl uppercase italic">NUMA Intelligence</span>
-          </Link>
-          <div className="h-6 w-[1px] bg-accents-2" />
-          <nav className="hidden md:flex items-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-accents-5">
-             <Link href="/dashboard" className="text-foreground transition-all underline underline-offset-8 decoration-geist-success">Platform</Link>
-             <Link href="/simulator" className="hover:text-foreground transition-all">Simulation</Link>
-             <Link href="/docs" className="hover:text-foreground transition-all">Documentation</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-6">
-           <button 
-             onClick={toggleTheme}
-             className="w-10 h-10 flex items-center justify-center rounded-full border border-accents-2 bg-accents-1 hover:bg-accents-2 transition-all group"
-             title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-           >
-             {theme === 'light' ? (
-               <Moon size={16} className="text-accents-5 group-hover:scale-110 transition-transform" />
-             ) : (
-               <Sun size={16} className="text-accents-5 group-hover:scale-110 transition-transform" />
-             )}
-           </button>
-           <div className="flex items-center gap-3 px-4 py-2 bg-geist-success/10 border border-geist-success/30 rounded-full text-[10px] font-black italic text-geist-success">
-              <div className="w-2 h-2 rounded-full bg-geist-success animate-pulse" />
-              SYSTEM_READY
-           </div>
-        </div>
-      </nav>
-
       <main className="flex-1 w-full mx-auto max-w-[1700px] border-x border-accents-2">
         {/* Intro Section */}
         <div className="p-12 lg:p-16 border-b border-accents-2 bg-gradient-to-br from-background to-accents-1">

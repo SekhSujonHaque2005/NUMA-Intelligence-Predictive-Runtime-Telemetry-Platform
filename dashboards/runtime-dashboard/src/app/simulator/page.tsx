@@ -122,30 +122,6 @@ export default function SimulatorPage() {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-accents-2 bg-background text-foreground">
-      {/* High-Contrast Nav */}
-      <nav className="h-[80px] border-b border-accents-2 flex items-center justify-between px-10 sticky top-0 bg-background/90 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-foreground rounded flex items-center justify-center">
-              <ActivityIcon size={16} className="text-background" strokeWidth={3} />
-            </div>
-            <span className="font-bold tracking-tighter text-2xl uppercase italic">NUMA Intelligence</span>
-          </Link>
-          <div className="h-6 w-[1px] bg-accents-2" />
-          <nav className="hidden md:flex items-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-accents-5">
-             <Link href="/dashboard" className="hover:text-foreground transition-all">Platform</Link>
-             <Link href="/simulator" className="text-foreground transition-all underline underline-offset-8 decoration-geist-success">Simulation</Link>
-             <Link href="/docs" className="hover:text-foreground transition-all">Documentation</Link>
-          </nav>
-        </div>
-        <div className="flex items-center gap-6">
-           <div className="flex items-center gap-3 px-4 py-2 bg-geist-success/10 border border-geist-success/30 rounded-full text-[10px] font-black italic text-geist-success">
-              <div className="w-2 h-2 rounded-full bg-geist-success animate-pulse" />
-              LEARNING_MODE_ON
-           </div>
-        </div>
-      </nav>
-
       <main className="flex-1 w-full mx-auto max-w-[1700px] border-x border-accents-2">
         {/* Simplified Educational Intro */}
         <div className="grid grid-cols-1 lg:grid-cols-3 divide-x divide-accents-2 border-b border-accents-2">

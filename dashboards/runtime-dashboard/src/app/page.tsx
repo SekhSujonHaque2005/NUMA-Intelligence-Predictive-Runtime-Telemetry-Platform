@@ -35,27 +35,6 @@ const FeatureCard = ({ icon: Icon, title, desc }: any) => (
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col selection:bg-accents-2 font-serif bg-background text-foreground">
-      {/* Premium Header */}
-      <nav className="h-[80px] border-b border-accents-2 flex items-center justify-between px-10 sticky top-0 bg-background/90 backdrop-blur-xl z-50">
-        <div className="flex items-center gap-10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-foreground rounded flex items-center justify-center">
-              <Activity size={16} className="text-background" strokeWidth={3} />
-            </div>
-            <span className="font-bold tracking-tighter text-2xl uppercase italic">NUMA Intelligence</span>
-          </div>
-          <div className="h-6 w-[1px] bg-accents-2" />
-          <nav className="hidden md:flex items-center gap-12 text-[11px] font-black uppercase tracking-[0.3em] text-accents-5">
-            <Link href="/dashboard" className="hover:text-foreground transition-all">Platform</Link>
-            <Link href="/simulator" className="hover:text-foreground transition-all">Simulation</Link>
-            <Link href="/docs" className="hover:text-foreground transition-all">Documentation</Link>
-          </nav>
-        </div>
-        <Link href="/dashboard" className="vercel-btn-primary px-8 py-2.5 text-[11px] uppercase font-black tracking-widest flex items-center gap-3">
-          Launch Platform <ArrowRight size={14} />
-        </Link>
-      </nav>
-
       <main className="flex-1 w-full border-x border-accents-2 mx-auto max-w-[1700px]">
         {/* Intense Hero Section */}
         <section className="relative pt-32 pb-44 px-10 border-b border-accents-2 overflow-hidden">
