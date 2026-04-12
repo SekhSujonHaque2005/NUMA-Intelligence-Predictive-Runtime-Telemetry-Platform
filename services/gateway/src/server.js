@@ -67,6 +67,12 @@ async function SendMetrics(call, callback) {
       "INSERT INTO metrics (source, cpu_id, cpu_usage, timestamp) VALUES ($1, $2, $3, $4)",
       [source, cpu_id, cpu_usage, new Date()]
     );
+    
+    // Log pulse occasionally
+    if (Math.random() < 0.1) {
+      console.log(`📡 Ingesting pulse from [${source}] Core ${cpu_id}: ${cpu_usage.toFixed(1)}%`);
+    }
+
     callback(null, data);
   } catch (err) {
     console.error("DB Insert Error:", err);

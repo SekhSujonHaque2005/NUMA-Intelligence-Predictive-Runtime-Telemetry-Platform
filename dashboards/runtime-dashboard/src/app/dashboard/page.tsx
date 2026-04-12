@@ -358,8 +358,8 @@ export default function Dashboard() {
                   <tr key={idx} className="group hover:bg-accents-1/50 transition-colors border-b border-accents-2 font-serif">
                     <td className="px-10 py-5 border-r border-accents-2">
                       <div className="flex items-center gap-3">
-                         <div className={`w-2 h-2 rounded-full ${m.source === 'cpp-agent' ? 'bg-[#0070f3]' : 'bg-[#f5a623]'}`} />
-                         <span className="text-sm font-bold text-foreground italic uppercase underline decoration-accents-2 underline-offset-4">{m.source}</span>
+                         <div className={`w-2 h-2 rounded-full ${m.source === 'cpp' ? 'bg-[#0070f3]' : 'bg-[#f5a623]'}`} />
+                         <span className="text-sm font-bold text-foreground italic uppercase underline decoration-accents-2 underline-offset-4">{m.source} agent</span>
                       </div>
                     </td>
                     <td className="px-10 py-5 border-r border-accents-2 text-foreground font-bold italic text-sm">
