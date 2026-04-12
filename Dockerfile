@@ -11,8 +11,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY agents/runtime-agent ./agents/runtime-agent
 COPY packages/proto ./packages/proto
+COPY agents/runtime-agent ./agents/runtime-agent
+
+# Regenerate Proto files to match the container's protoc version
+RUN protoc -I ./packages/proto --cpp_out=./packages/proto --grpc_out=./packages/proto \
+    --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin ./packages/proto/runtime.proto
+
 WORKDIR /build/agents/runtime-agent
 RUN mkdir build && cd build && cmake .. && make
 
