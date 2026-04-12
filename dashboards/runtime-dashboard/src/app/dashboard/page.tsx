@@ -222,8 +222,8 @@ export default function Dashboard() {
       y: {
         beginAtZero: true,
         max: 100,
-        grid: { color: '#222' },
-        ticks: { color: '#666', font: { family: 'Times New Roman', size: 10 } }
+        grid: { color: theme === 'dark' ? '#222' : '#eee' },
+        ticks: { color: theme === 'dark' ? '#666' : '#999', font: { family: 'Times New Roman', size: 10 } }
       }
     },
   };
