@@ -51,6 +51,13 @@ void Runtime::worker_task(int id) {
         const char* gateway_env = std::getenv("GATEWAY_ADDR");
         std::string gateway_addr = gateway_env ? gateway_env : "localhost:50051";
 
+        // Strip http:// or https:// for C++ gRPC client
+        if (gateway_addr.find("http://") == 0) {
+            gateway_addr = gateway_addr.substr(7);
+        } else if (gateway_addr.find("https://") == 0) {
+            gateway_addr = gateway_addr.substr(8);
+        }
+
         GrpcClient client(
             grpc::CreateChannel(gateway_addr,
             grpc::InsecureChannelCredentials())
