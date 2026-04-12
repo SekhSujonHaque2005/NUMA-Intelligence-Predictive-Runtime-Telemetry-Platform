@@ -97,10 +97,29 @@ app.get("/api/metrics/realtime", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch metrics" });
   }
 });
-
-// Clear table on start
-console.log("🧹 Cleaning old metrics data...");
-db.query("TRUNCATE TABLE metrics").catch(e => {});
+// Database Initialization
+const initDb = async () => {
+  try {
+    console.log("🛠  Initializing Database...");
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS metrics (
+        id SERIAL PRIMARY KEY,
+        source VARCHAR(50),
+        cpu_id INTEGER,
+        cpu_usage DOUBLE PRECISION,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log("✅ Table 'metrics' is ready.");
+    
+    // Clear table on start
+    console.log("🧹 Cleaning old metrics data...");
+    await db.query("TRUNCATE TABLE metrics");
+  } catch (err) {
+    console.error("❌ Database initialization failed:", err);
+  }
+};
+initDb();
 
 // START HTTP & WebSocket SERVER
 const HTTP_PORT = process.env.PORT || 3001;
