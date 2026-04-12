@@ -62,7 +62,7 @@ RUN npm install
 
 # Environment Variables
 ENV NODE_ENV=production
-ENV GATEWAY_ADDR=localhost:50051
+ENV GATEWAY_ADDR=http://localhost:50051
 
 # Expose HTTP/WS Port
 EXPOSE 3001
