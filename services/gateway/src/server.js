@@ -65,7 +65,7 @@ async function SendMetrics(call, callback) {
   try {
     await db.query(
       "INSERT INTO metrics (source, cpu_id, cpu_usage, timestamp) VALUES ($1, $2, $3, $4)",
-      [source, cpu_id, cpu_usage, Date.now()]
+      [source, cpu_id, cpu_usage, new Date()]
     );
     callback(null, data);
   } catch (err) {
@@ -119,41 +119,47 @@ const initDb = async () => {
     console.error("❌ Database initialization failed:", err);
   }
 };
-initDb();
 
-// START HTTP & WebSocket SERVER
-const HTTP_PORT = process.env.PORT || 3001;
-const httpServer = createServer(app);
-const wss = new WebSocketServer({ server: httpServer });
+const startServer = async () => {
+  // Ensure DB is ready before listening
+  await initDb();
 
-wss.on("connection", (ws) => {
-  console.log("🔌 WebSocket client connected");
-  clients.add(ws);
-  ws.on("close", () => {
-    console.log("🔌 WebSocket client disconnected");
-    clients.delete(ws);
+  // START HTTP & WebSocket SERVER
+  const HTTP_PORT = process.env.PORT || 3001;
+  const httpServer = createServer(app);
+  const wss = new WebSocketServer({ server: httpServer });
+
+  wss.on("connection", (ws) => {
+    console.log("🔌 WebSocket client connected");
+    clients.add(ws);
+    ws.on("close", () => {
+      console.log("🔌 WebSocket client disconnected");
+      clients.delete(ws);
+    });
   });
-});
 
-httpServer.listen(HTTP_PORT, "0.0.0.0", () => {
-  console.log(`🌐 Dashboard API & WebSocket running on http://localhost:${HTTP_PORT}`);
-});
+  httpServer.listen(HTTP_PORT, "0.0.0.0", () => {
+    console.log(`🌐 Dashboard API & WebSocket running on http://localhost:${HTTP_PORT}`);
+  });
 
-// START gRPC SERVER
-const server = new grpc.Server();
+  // START gRPC SERVER
+  const server = new grpc.Server();
 
-server.addService(runtimePackage.RuntimeService.service, {
-  SendMetrics,
-});
+  server.addService(runtimePackage.RuntimeService.service, {
+    SendMetrics,
+  });
 
-server.bindAsync(
-  "0.0.0.0:50051",
-  grpc.ServerCredentials.createInsecure(),
-  (err, port) => {
-    if (err) {
-      console.error("Failed to bind gRPC server:", err);
-      return;
+  server.bindAsync(
+    "0.0.0.0:50051",
+    grpc.ServerCredentials.createInsecure(),
+    (err, port) => {
+      if (err) {
+        console.error("Failed to bind gRPC server:", err);
+        return;
+      }
+      console.log(`🚀 gRPC Gateway running on port ${port}`);
     }
-    console.log(`🚀 gRPC Gateway running on port ${port}`);
-  }
-);
+  );
+};
+
+startServer();
