@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "NUMA Intelligence",
   description: "Real-time CPU and Runtime Metrics Dashboard",
   icons: {
-    icon: "/logo.png",
+    icon: "/icon.png",
   },
 };
 
