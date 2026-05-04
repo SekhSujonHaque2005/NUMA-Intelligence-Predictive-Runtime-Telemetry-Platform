@@ -43,6 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cpu_usage: m.cpu_usage,
                 node_id: m.node_id,
                 memory_mb: m.memory_mb,
+                local_latency_ns: 0.0,  // Placeholder for now
+                remote_latency_ns: 0.0, // Placeholder for now
                 timestamp_ms: m.timestamp_ms,
             });
 
