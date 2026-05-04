@@ -181,4 +181,5 @@ private:
         if (!num_str.empty()) val = std::stoull(num_str);
         return val;
     }
+#endif
 };
