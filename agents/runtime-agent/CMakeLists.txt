@@ -15,11 +15,18 @@ find_package(gRPC REQUIRED)
 # Generate C++ files from .proto
 set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../packages/proto")
 set(PROTO_SRC "${PROTO_DIR}/runtime.proto")
-protobuf_generate_cpp(PROTO_HEADERS PROTO_SOURCES ${PROTO_SRC})
 
-# Manual gRPC generation as it's not always in find_package
+set(PROTO_PB_CC "${CMAKE_CURRENT_BINARY_DIR}/runtime.pb.cc")
+set(PROTO_PB_H "${CMAKE_CURRENT_BINARY_DIR}/runtime.pb.h")
 set(GRPC_PB_CC "${CMAKE_CURRENT_BINARY_DIR}/runtime.grpc.pb.cc")
 set(GRPC_PB_H "${CMAKE_CURRENT_BINARY_DIR}/runtime.grpc.pb.h")
+
+add_custom_command(
+    OUTPUT "${PROTO_PB_CC}" "${PROTO_PB_H}"
+    COMMAND protoc --cpp_out="${CMAKE_CURRENT_BINARY_DIR}" -I "${PROTO_DIR}" "${PROTO_SRC}"
+    DEPENDS "${PROTO_SRC}"
+)
+
 add_custom_command(
     OUTPUT "${GRPC_PB_CC}" "${GRPC_PB_H}"
     COMMAND protoc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --grpc_out="${CMAKE_CURRENT_BINARY_DIR}" -I "${PROTO_DIR}" "${PROTO_SRC}"
@@ -30,7 +37,7 @@ add_executable(runtime_agent
     src/main.cpp
     src/runtime.cpp
     src/grpc_client.cpp
-    ${PROTO_SOURCES}
+    "${PROTO_PB_CC}"
     "${GRPC_PB_CC}"
 )
 
