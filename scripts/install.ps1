@@ -46,6 +46,6 @@ if (!(Get-Command "cmake" -ErrorAction SilentlyContinue)) {
     Write-Host "💡 Tip: To build the agent, download CMake here: https://cmake.org/download/" -ForegroundColor Gray
 }
 
-if (!(Test-Path "runtime_agent.exe")) {
+if (!(Test-Path "$START_DIR/runtime_agent.exe")) {
     Write-Host "`n⚠️  Build failed. Please try running this command from the 'Developer PowerShell for VS 2022' terminal." -ForegroundColor Yellow
 }
