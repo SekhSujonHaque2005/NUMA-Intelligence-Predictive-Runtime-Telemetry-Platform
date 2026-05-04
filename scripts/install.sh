@@ -48,8 +48,7 @@ FINAL_URL=${GATEWAY_ADDR:-"https://numa-intelligence-predictive-runtime.onrender
 
 echo -e "\n${GREEN}✅ Installation Complete!${NC}"
 echo -e "To connect your hardware to the live dashboard, run:"
-echo -e "\n${BLUE}export GATEWAY_ADDR=\"$FINAL_URL\"${NC}"
-echo -e "${BLUE}./runtime_agent${NC}\n"
+echo -e "\n${BLUE}export GATEWAY_ADDR=\"$FINAL_URL\" && ./runtime_agent${NC}\n"
 
 if [ ! -f "$START_DIR/runtime_agent" ]; then
     echo -e "${RED}⚠️  Build failed. Please ensure you have g++ and libnuma-dev installed.${NC}"

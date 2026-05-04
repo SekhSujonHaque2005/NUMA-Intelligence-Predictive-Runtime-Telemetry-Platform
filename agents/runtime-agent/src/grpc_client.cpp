@@ -41,10 +41,12 @@ void GrpcClient::send(int cpu_id, float usage, int node_id, float memory_mb,
         if (status.ok()) {
             consecutive_failures_ = 0;
             last_success_time_ = std::chrono::steady_clock::now();
+            LOG_DEBUG("Metric sent successfully to gateway");
             return;
         }
 
         consecutive_failures_++;
+        LOG_WARN("Failed to send metric (Attempt " << attempt << "/" << MAX_RETRIES << "): " << status.error_message());
         
         auto code = status.error_code();
         if (code != grpc::StatusCode::UNAVAILABLE && code != grpc::StatusCode::DEADLINE_EXCEEDED) {

@@ -70,13 +70,17 @@ private:
         // Benchmark pointer chasing
         auto start = std::chrono::high_resolution_clock::now();
         
-        void** curr = &data[indices[0]];
+        void** volatile curr = &data[indices[0]];
         const size_t iterations = 1000000; // 1M hops
         for (size_t i = 0; i < iterations; ++i) {
             curr = static_cast<void**>(*curr);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
+        
+        // Prevent optimizing away the final result
+        (void)curr; 
+        
         numa_free(ptr, size);
 
         auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
