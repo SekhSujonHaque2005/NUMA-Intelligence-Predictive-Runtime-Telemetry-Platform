@@ -124,6 +124,7 @@ const NumaHeatmap = ({ metrics }: { metrics: Metric[] }) => {
 
 const InstallModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [platform, setPlatform] = useState<"linux" | "windows" | "mac">("linux");
+  const [copied, setCopied] = useState(false);
   const PRODUCTION_URL = "https://numa-intelligence-predictive-runtime.onrender.com";
   
   if (!isOpen) return null;
@@ -132,6 +133,12 @@ const InstallModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     linux: `export GATEWAY_ADDR="${PRODUCTION_URL}" && curl -sSL https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.sh | bash`,
     windows: `$env:GATEWAY_ADDR="${PRODUCTION_URL}"; iwr https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.ps1 | iex`,
     mac: `export GATEWAY_ADDR="${PRODUCTION_URL}" && curl -sSL https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.sh | bash`
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(commands[platform]);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -170,10 +177,10 @@ const InstallModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
              {commands[platform]}
            </code>
            <button 
-             onClick={() => navigator.clipboard.writeText(commands[platform])}
-             className="absolute top-4 right-4 p-2 bg-background border border-accents-2 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+             onClick={copyToClipboard}
+             className="absolute top-4 right-4 p-2 bg-background border border-accents-2 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 text-[10px] text-accents-5 hover:text-foreground"
            >
-             <ActivityIcon size={14} />
+             {copied ? <><Zap size={12} className="text-geist-success" /> Copied!</> : <><Monitor size={12} /> Copy</>}
            </button>
         </div>
 
