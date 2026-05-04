@@ -14,12 +14,12 @@ WORKDIR /build
 COPY packages/proto ./packages/proto
 COPY agents/runtime-agent ./agents/runtime-agent
 
-# Regenerate Proto files to match the container's protoc version
+# Regenerate Proto files
 RUN protoc -I ./packages/proto --cpp_out=./packages/proto --grpc_out=./packages/proto \
     --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin ./packages/proto/runtime.proto
 
 WORKDIR /build/agents/runtime-agent
-RUN mkdir build && cd build && cmake .. && make
+RUN mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j1
 
 # --- Stage 2: Build Rust Agent ---
 FROM rust:latest AS rust-builder
@@ -33,7 +33,7 @@ WORKDIR /build
 COPY agents/rust-agent ./agents/rust-agent
 COPY packages/proto ./packages/proto
 WORKDIR /build/agents/rust-agent
-RUN cargo build --release
+RUN cargo build --release --jobs 1
 
 # --- Stage 3: Final Image ---
 FROM node:20-bookworm-slim
