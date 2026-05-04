@@ -8,6 +8,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+START_DIR=$(pwd)
 echo -e "${BLUE}🚀 Initializing NUMA Intelligence Agent...${NC}"
 
 # 1. Detect and Prepare Environment
@@ -36,7 +37,7 @@ mkdir -p build && cd build
 if command -v cmake >/dev/null 2>&1; then
     cmake .. >/dev/null && make -j$(nproc) >/dev/null
     if [ -f "runtime_agent" ]; then
-        cp runtime_agent ../../../
+        cp runtime_agent "$START_DIR/"
         echo -e "${GREEN}✨ Build Successful!${NC}"
     fi
 fi

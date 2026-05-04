@@ -1,5 +1,5 @@
-# NUMA Intelligence - Windows One-Line Installer
 Write-Host "🚀 Initializing NUMA Intelligence Agent..." -ForegroundColor Cyan
+$START_DIR = Get-Location
 
 # 1. Detect and Prepare Environment
 Write-Host "📦 Platform detected: Windows" -ForegroundColor Green
@@ -23,7 +23,7 @@ if (Get-Command "cmake" -ErrorAction SilentlyContinue) {
     cmake .. -G "Visual Studio 17 2022" -A x64
     cmake --build . --config Release
     if (Test-Path "Release/runtime_agent.exe") {
-        Copy-Item "Release/runtime_agent.exe" "../../.."
+        Copy-Item "Release/runtime_agent.exe" "$START_DIR"
         Write-Host "✨ Build Successful!" -ForegroundColor Green
     }
     cd ../../..
