@@ -8,9 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Production-grade warnings
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-# Find Protobuf and gRPC
+# Find Dependencies
+find_package(PkgConfig REQUIRED)
 find_package(Protobuf REQUIRED)
-find_package(gRPC REQUIRED)
+pkg_check_modules(GRPC REQUIRED grpc++)
 
 # Generate C++ files from .proto
 set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../packages/proto")
@@ -40,11 +41,6 @@ add_executable(runtime_agent
     "${PROTO_PB_CC}"
     "${GRPC_PB_CC}"
 )
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GRPC REQUIRED grpc++)
-
-find_package(Protobuf REQUIRED)
 
 include_directories(
     ${GRPC_INCLUDE_DIRS}
