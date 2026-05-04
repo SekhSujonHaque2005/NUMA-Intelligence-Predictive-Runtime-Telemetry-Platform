@@ -79,8 +79,8 @@ private:
         auto end = std::chrono::high_resolution_clock::now();
         numa_free(ptr, size);
 
-        std::chrono::duration<double, std::nanoseconds> diff = end - start;
-        return diff.count() / iterations;
+        auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        return static_cast<double>(diff.count()) / iterations;
     }
 #endif
 };
