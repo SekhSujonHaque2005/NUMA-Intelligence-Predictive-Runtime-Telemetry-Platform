@@ -22,13 +22,22 @@ if [[ "$OS_TYPE" == "Linux" ]]; then
     fi
 fi
 
-# 3. Build instructions (Simulated for this demo)
+# 3. Build Agent
 echo -e "🏗  Building high-performance telemetry engine..."
 mkdir -p build && cd build
-# cmake .. && make -j$(nproc)
+if command -v cmake >/dev/null 2>&1; then
+    cmake .. >/dev/null && make -j$(nproc) >/dev/null
+    if [ -f "runtime_agent" ]; then
+        cp runtime_agent ..
+        echo -e "${GREEN}✨ Build Successful!${NC}"
+    fi
+fi
+cd ..
 
 # 4. Final Instructions
+FINAL_URL=${GATEWAY_ADDR:-"https://numa-intelligence-predictive-runtime.onrender.com"}
+
 echo -e "\n${GREEN}✅ Installation Complete!${NC}"
 echo -e "To connect your hardware to the live dashboard, run:"
-echo -e "\n${BLUE}export GATEWAY_ADDR=\"https://your-render-url.com\"${NC}"
+echo -e "\n${BLUE}export GATEWAY_ADDR=\"$FINAL_URL\"${NC}"
 echo -e "${BLUE}./runtime_agent${NC}\n"

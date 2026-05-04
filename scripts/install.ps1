@@ -4,8 +4,19 @@ Write-Host "🚀 Initializing NUMA Intelligence Agent..." -ForegroundColor Cyan
 # 1. Detect Environment
 Write-Host "📦 Platform detected: Windows" -ForegroundColor Green
 
-# 2. Check for Visual Studio Build Tools
-if (!(Get-Command "cmake.exe" -ErrorAction SilentlyContinue)) {
+# 2. Build the Agent
+if (Get-Command "cmake" -ErrorAction SilentlyContinue) {
+    Write-Host "🛠️  Building Agent..." -ForegroundColor Cyan
+    if (!(Test-Path "build")) { New-Item -ItemType Directory -Force -Path "build" }
+    cd build
+    cmake ..
+    cmake --build . --config Release
+    if (Test-Path "Release/runtime_agent.exe") {
+        Copy-Item "Release/runtime_agent.exe" ".."
+        Write-Host "✨ Build Successful!" -ForegroundColor Green
+    }
+    cd ..
+} else {
     Write-Host "⚠️  CMake not found. Please install CMake and Visual Studio C++ Build Tools." -ForegroundColor Yellow
 }
 
