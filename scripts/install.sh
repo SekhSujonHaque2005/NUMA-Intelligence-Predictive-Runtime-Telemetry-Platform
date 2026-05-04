@@ -10,9 +10,16 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Initializing NUMA Intelligence Agent...${NC}"
 
-# 1. Detect OS
+# 1. Detect and Prepare Environment
 OS_TYPE=$(uname -s)
 echo -e "📦 Platform detected: ${GREEN}$OS_TYPE${NC}"
+
+if [ ! -f "CMakeLists.txt" ]; then
+    echo -e "${BLUE}📂 Source code not found. Cloning from GitHub...${NC}"
+    rm -rf NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform
+    git clone https://github.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform.git
+    cd NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform
+fi
 
 # 2. Check for dependencies
 if [[ "$OS_TYPE" == "Linux" ]]; then
