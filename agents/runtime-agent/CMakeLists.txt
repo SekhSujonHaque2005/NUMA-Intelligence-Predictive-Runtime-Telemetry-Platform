@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.10)
 project(runtime_agent)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Production-grade warnings
+add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(runtime_agent
     src/main.cpp
@@ -23,8 +27,17 @@ include_directories(
     ../../packages/proto
 )
 
+# Platform-specific linking
+if(UNIX AND NOT APPLE)
+    set(PLATFORM_LIBS numa pthread)
+elseif(WIN32)
+    set(PLATFORM_LIBS psapi)
+else()
+    set(PLATFORM_LIBS "")
+endif()
+
 target_link_libraries(runtime_agent
-    numa
+    ${PLATFORM_LIBS}
     ${GRPC_LIBRARIES}
     ${Protobuf_LIBRARIES}
 )

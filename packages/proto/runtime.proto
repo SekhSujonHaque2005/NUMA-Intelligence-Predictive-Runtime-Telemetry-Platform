@@ -4,9 +4,14 @@ package runtime;
 
 // This represents a single metric data point
 message Metrics {
-  string source = 1;   // "cpp" or "rust"
+  string source = 1;      // "cpp" or "rust"
   int32 cpu_id = 2;
   float cpu_usage = 3;
+  int32 node_id = 4;      // The NUMA node ID
+  float memory_mb = 5;    // Node-local memory usage
+  double local_latency_ns = 6;
+  double remote_latency_ns = 7;
+  uint64 timestamp_ms = 8;
 }
 
 // Service definition

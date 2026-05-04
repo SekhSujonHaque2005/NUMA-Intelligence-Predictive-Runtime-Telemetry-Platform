@@ -41,6 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 source: "rust".to_string(),
                 cpu_id: m.cpu_id as i32,
                 cpu_usage: m.cpu_usage,
+                node_id: m.node_id,
+                memory_mb: m.memory_mb,
+                timestamp_ms: m.timestamp_ms,
             });
 
             match client.send_metrics(request).await {

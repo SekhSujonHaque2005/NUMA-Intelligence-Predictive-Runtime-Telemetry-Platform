@@ -55,8 +55,138 @@ interface Metric {
   source: string;
   cpu_id: number;
   cpu_usage: number;
+  node_id: number;
+  memory_mb: number;
+  local_lat: number;
+  remote_lat: number;
   timestamp: string;
 }
+
+const NumaHeatmap = ({ metrics }: { metrics: Metric[] }) => {
+  // Group metrics by node_id
+  const nodes = metrics.reduce((acc: Record<number, Metric[]>, m) => {
+    if (!acc[m.node_id]) acc[m.node_id] = [];
+    acc[m.node_id].push(m);
+    return acc;
+  }, {});
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-12 bg-accents-1/10">
+      {Object.entries(nodes).map(([nodeId, cpuMetrics]) => (
+        <div key={nodeId} className="vercel-card border border-accents-2 p-6 bg-background">
+          <div className="flex justify-between items-center mb-6 border-b border-accents-2 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accents-1 rounded">
+                <Layout size={16} className="text-accents-5" />
+              </div>
+              <h4 className="text-sm font-black uppercase tracking-widest italic">NUMA Node {nodeId}</h4>
+            </div>
+            <div className="text-[10px] font-bold text-accents-4 uppercase tracking-tighter">
+              {cpuMetrics.length} Cores Managed
+            </div>
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {cpuMetrics.sort((a,b) => a.cpu_id - b.cpu_id).map(m => (
+              <div 
+                key={m.cpu_id}
+                className="aspect-square rounded-sm border border-accents-2 flex items-center justify-center relative group overflow-hidden"
+                title={`Core ${m.cpu_id}: ${m.cpu_usage.toFixed(1)}%`}
+              >
+                <div 
+                  className={`absolute inset-0 transition-all duration-700 ${m.source === 'cpp' ? 'bg-[#0070f3]' : (m.source === 'rust' ? 'bg-[#f5a623]' : 'bg-accents-2')}`}
+                  style={{ opacity: (m.cpu_usage / 100) * 0.8 + 0.1 }}
+                />
+                <span className="relative text-[8px] font-bold z-10 opacity-30 group-hover:opacity-100 transition-opacity">
+                  {m.cpu_id}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex justify-between items-end">
+            <div>
+              <p className="text-[9px] font-bold text-accents-4 uppercase mb-1 tracking-widest">Memory Pressure</p>
+              <p className="text-xl font-black italic tracking-tighter">
+                {cpuMetrics[0].memory_mb.toFixed(1)} <span className="text-[10px] text-accents-3 uppercase not-italic">MB Used</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[9px] font-bold text-accents-4 uppercase mb-1 tracking-widest">Local Latency</p>
+              <p className="text-xl font-black italic tracking-tighter text-geist-success">
+                {cpuMetrics[0].local_lat.toFixed(2)} <span className="text-[10px] text-accents-3 uppercase not-italic">ns</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const InstallModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [platform, setPlatform] = useState<"linux" | "windows" | "mac">("linux");
+  const PRODUCTION_URL = "https://numa-intelligence-predictive-runtime.onrender.com";
+  
+  if (!isOpen) return null;
+
+  const commands = {
+    linux: `export GATEWAY_ADDR="${PRODUCTION_URL}" && curl -sSL https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.sh | bash`,
+    windows: `$env:GATEWAY_ADDR="${PRODUCTION_URL}"; iwr https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.ps1 | iex`,
+    mac: `export GATEWAY_ADDR="${PRODUCTION_URL}" && curl -sSL https://raw.githubusercontent.com/SekhSujonHaque2005/NUMA-Intelligence-Predictive-Runtime-Telemetry-Platform/main/scripts/install.sh | bash`
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-6">
+      <div className="vercel-card max-w-2xl w-full bg-background border border-accents-2 p-10 relative shadow-2xl">
+        <button onClick={onClose} className="absolute top-6 right-6 text-accents-4 hover:text-foreground">
+          <Zap size={20} />
+        </button>
+        
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+             <div className="p-2 bg-geist-success/10 rounded">
+                <Shield size={20} className="text-geist-success" />
+             </div>
+             <h3 className="text-3xl font-black italic tracking-tighter uppercase">Connect Hardware</h3>
+          </div>
+          <p className="text-sm text-accents-5 leading-loose italic">
+            To see real-time NUMA telemetry from your machine, run the following command in your terminal. This will install and connect your local agent to this dashboard.
+          </p>
+        </div>
+
+        <div className="flex gap-4 mb-6">
+          {(["linux", "windows", "mac"] as const).map(p => (
+            <button 
+              key={p}
+              onClick={() => setPlatform(p)}
+              className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest border transition-all ${platform === p ? 'bg-foreground text-background border-foreground' : 'border-accents-2 text-accents-4 hover:border-accents-3'}`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-accents-1 p-6 border border-accents-2 rounded font-mono text-xs relative group">
+           <code className="text-accents-5 break-all leading-relaxed">
+             {commands[platform]}
+           </code>
+           <button 
+             onClick={() => navigator.clipboard.writeText(commands[platform])}
+             className="absolute top-4 right-4 p-2 bg-background border border-accents-2 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+           >
+             <ActivityIcon size={14} />
+           </button>
+        </div>
+
+        <div className="mt-8 flex items-center gap-4 p-4 bg-accents-1/50 border border-accents-2 rounded-sm">
+           <Info size={16} className="text-[#0070f3]" />
+           <p className="text-[10px] italic text-accents-5">
+             <strong>Security Note:</strong> The agent only transmits performance metrics. No private files or personal data are ever accessed or sent.
+           </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const StatCard = ({ icon: Icon, label, value, subtext, color = "text-foreground", status = "Good" }: any) => (
   <div className="vercel-card p-8 border border-accents-2 relative group overflow-hidden transition-all hover:bg-accents-1/50">
@@ -83,7 +213,36 @@ export default function Dashboard() {
   const metricsRef = useRef<Metric[]>([]);
   const [history, setHistory] = useState<{labels: string[], cpp: number[], rust: number[]}>({labels: [], cpp: [], rust: []});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [browserInfo, setBrowserInfo] = useState({ cores: 0, ram: 0, os: "Unknown" });
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const { theme } = useTheme();
+
+  // Detect Browser Hardware (Zero-Install)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cores = navigator.hardwareConcurrency || 4;
+      const ram = (navigator as any).deviceMemory || 4;
+      const ua = navigator.userAgent;
+      let os = "Linux";
+      if (ua.indexOf("Win") !== -1) os = "Windows";
+      if (ua.indexOf("Mac") !== -1) os = "macOS";
+      
+      setBrowserInfo({ cores, ram, os });
+
+      // Pre-fill local UI with "Standby" cores matching user's hardware
+      const initialMetrics: Metric[] = Array.from({ length: cores }).map((_, i) => ({
+        source: "local-browser",
+        cpu_id: i,
+        cpu_usage: 0,
+        node_id: 0,
+        memory_mb: 0,
+        local_lat: 0,
+        remote_lat: 0,
+        timestamp: new Date().toLocaleTimeString()
+      }));
+      setMetrics(initialMetrics);
+    }
+  }, []);
 
   // Sync ref with state
   useEffect(() => {
@@ -95,7 +254,8 @@ export default function Dashboard() {
     let reconnectTimer: NodeJS.Timeout;
 
     const connect = () => {
-      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || "http://localhost:3001";
+      const PRODUCTION_URL = "https://numa-intelligence-predictive-runtime.onrender.com";
+      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || PRODUCTION_URL;
       const wsUrl = gatewayUrl.replace(/^http/, "ws");
       ws = new WebSocket(wsUrl);
       
@@ -104,7 +264,10 @@ export default function Dashboard() {
           const data = JSON.parse(event.data);
           setMetrics(prev => {
              if (Array.isArray(data)) {
-                const newMetrics = [...prev];
+                // Filter out browser placeholders once real data arrives
+                const filtered = prev.filter(m => m.source !== "local-browser");
+                const newMetrics = [...filtered];
+                
                 data.forEach(m => {
                    const idx = newMetrics.findIndex(nm => nm.source === m.source && nm.cpu_id === m.cpu_id);
                    if (idx > -1) newMetrics[idx] = m;
@@ -229,32 +392,66 @@ export default function Dashboard() {
                  <p className="text-lg text-accents-4 leading-relaxed max-w-2xl">
                     Welcome to the simplified view of your machine. This page shows you how hard your computer nodes (C++ and Rust) are working in real-time.
                  </p>
-                 <div className="mt-8 flex items-center gap-4 p-4 bg-accents-1 border border-accents-2 rounded-sm inline-flex">
-                    <HelpCircle size={16} className="text-geist-success" />
-                    <p className="text-xs italic text-accents-5">
-                       <strong>Beginner Tip:</strong> If the graph pulses <strong>Blue</strong> or <strong>Orange</strong>, your processors are currently processing data!
-                    </p>
+                 <div className="mt-8 flex items-center gap-4">
+                   <button 
+                     onClick={() => setIsInstallModalOpen(true)}
+                     className="px-8 py-3 bg-foreground text-background text-[11px] font-black uppercase tracking-widest hover:bg-accents-6 transition-all flex items-center gap-3"
+                   >
+                     <Zap size={14} fill="currentColor" /> Connect Agent
+                   </button>
+                   <div className="flex items-center gap-4 p-4 bg-accents-1 border border-accents-2 rounded-sm inline-flex">
+                      <HelpCircle size={16} className="text-geist-success" />
+                      <p className="text-xs italic text-accents-5">
+                         <strong>Beginner Tip:</strong> If the graph pulses <strong>Blue</strong> or <strong>Orange</strong>, your processors are currently processing data!
+                      </p>
+                   </div>
                  </div>
               </div>
-              <div className="flex flex-col items-end gap-3 text-[10px] font-bold text-accents-4 border border-accents-2 p-6 bg-background rounded">
-                 <div className="flex items-center gap-2 mb-2">
-                    <Heart size={12} className="text-geist-error" /> 
-                    <span className="uppercase tracking-widest">Live Sync Status</span>
-                 </div>
-                 <span className="text-2xl font-black italic tracking-tighter text-foreground py-2 border-y border-accents-2 w-full text-center">
-                    {lastUpdated || 'SEARCHING...'}
-                 </span>
-                 <span className="uppercase tracking-[0.2em] opacity-50">Global Cluster 01</span>
-              </div>
+
+               <div className="flex flex-col items-end gap-3 text-[10px] font-bold text-accents-4 border border-accents-2 p-6 bg-background rounded">
+                  <div className="flex items-center gap-2 mb-2">
+                     <Monitor size={12} className="text-geist-success" /> 
+                     <span className="uppercase tracking-widest text-geist-success">Detected Environment (Zero-Install)</span>
+                  </div>
+                  <div className="flex flex-col gap-1 w-full border-y border-accents-2 py-3 mb-2">
+                     <span className="text-xl font-black italic tracking-tighter text-foreground flex justify-between">
+                        <span>{browserInfo.os}</span>
+                        <span className="text-accents-3 text-[10px] uppercase not-italic">OS</span>
+                     </span>
+                     <span className="text-xl font-black italic tracking-tighter text-foreground flex justify-between">
+                        <span>{browserInfo.cores} Cores</span>
+                        <span className="text-accents-3 text-[10px] uppercase not-italic">Detect</span>
+                     </span>
+                     <span className="text-xl font-black italic tracking-tighter text-foreground flex justify-between">
+                        <span>{browserInfo.ram} GB+</span>
+                        <span className="text-accents-3 text-[10px] uppercase not-italic">Memory</span>
+                     </span>
+                  </div>
+                  <span className="uppercase tracking-[0.2em] opacity-50">Local Browser Session</span>
+               </div>
            </div>
         </div>
 
         {/* Primary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x divide-accents-2 border-b border-accents-2">
-          <StatCard icon={Server} label="Computer Nodes" value={new Set(metrics.map(m => m.source)).size} subtext="Connected Devices" />
-          <StatCard icon={Cpu} label="Processor Cores" value={metrics.length} subtext="Active Channels" />
-          <StatCard icon={Heart} label="Average Workload" value={`${(metrics.reduce((acc, curr) => acc + curr.cpu_usage, 0) / (metrics.length || 1)).toFixed(1)}%`} subtext="Total System Strain" color="text-geist-success" />
+          <StatCard icon={Server} label="Computer Nodes" value={new Set(metrics.filter(m => m.source !== "local-browser").map(m => m.source)).size} subtext="Connected Devices" />
+          <StatCard icon={ActivityIcon} label="Local Latency" value={`${(metrics.filter(m => m.source !== "local-browser").reduce((acc, curr) => acc + curr.local_lat, 0) / (metrics.filter(m => m.source !== "local-browser").length || 1)).toFixed(2)}ns`} subtext="Avg Memory Hops" color="text-geist-success" />
+          <StatCard icon={Layout} label="Memory Pressure" value={`${(metrics.filter(m => m.source !== "local-browser").reduce((acc, curr) => acc + curr.memory_mb, 0) / (metrics.filter(m => m.source !== "local-browser").length || 1)).toFixed(0)}MB`} subtext="Total Node Cache" />
           <StatCard icon={Shield} label="System Security" value="SAFE" subtext="End-to-End Encryption" status="Good" />
+        </div>
+
+        {/* Heatmap Section */}
+        <div className="border-b border-accents-2 bg-accents-1/30">
+          <div className="p-10 flex items-center justify-between border-b border-accents-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Layout size={20} className="text-accents-5" />
+                <h3 className="text-2xl font-black italic tracking-tighter uppercase">Hardware Affinity Heatmap</h3>
+              </div>
+              <p className="text-xs text-accents-4 italic underline decoration-accents-2 underline-offset-4 decoration-1">Grouping processor cores by their physical NUMA nodes for locality analysis.</p>
+            </div>
+          </div>
+          <NumaHeatmap metrics={metrics} />
         </div>
 
         {/* Chart Section */}
@@ -329,8 +526,9 @@ export default function Dashboard() {
                 <tr className="bg-background text-foreground text-left uppercase text-[10px] tracking-widest font-black border-b border-accents-2">
                   <th className="px-10 py-5 border-r border-accents-2">Device Name</th>
                   <th className="px-10 py-5 border-r border-accents-2">Processor ID</th>
+                  <th className="px-10 py-5 border-r border-accents-2">NUMA Node</th>
                   <th className="px-10 py-5 border-r border-accents-2">How Busy?</th>
-                  <th className="px-10 py-5 border-r border-accents-2">Usage Visual</th>
+                  <th className="px-10 py-5 border-r border-accents-2">Local Latency</th>
                   <th className="px-10 py-5">Unique Label</th>
                 </tr>
               </thead>
@@ -339,12 +537,15 @@ export default function Dashboard() {
                   <tr key={idx} className="group hover:bg-accents-1/50 transition-colors border-b border-accents-2 font-serif">
                     <td className="px-10 py-5 border-r border-accents-2">
                       <div className="flex items-center gap-3">
-                         <div className={`w-2 h-2 rounded-full ${m.source === 'cpp' ? 'bg-[#0070f3]' : 'bg-[#f5a623]'}`} />
+                         <div className={`w-2 h-2 rounded-full ${m.source === 'cpp' ? 'bg-[#0070f3]' : (m.source === 'rust' ? 'bg-[#f5a623]' : 'bg-accents-2')}`} />
                          <span className="text-sm font-bold text-foreground italic uppercase underline decoration-accents-2 underline-offset-4">{m.source} agent</span>
                       </div>
                     </td>
                     <td className="px-10 py-5 border-r border-accents-2 text-foreground font-bold italic text-sm">
                       Core_0{m.cpu_id}
+                    </td>
+                    <td className="px-10 py-5 border-r border-accents-2 text-accents-5 font-black italic text-xs uppercase">
+                      NODE_{m.node_id}
                     </td>
                     <td className="px-10 py-5 border-r border-accents-2">
                        <div className="flex items-center gap-3">
@@ -356,13 +557,8 @@ export default function Dashboard() {
                           </span>
                        </div>
                     </td>
-                    <td className="px-10 py-5 border-r border-accents-2 min-w-[200px]">
-                      <div className="h-1.5 w-full bg-accents-2 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full transition-all duration-700 ${m.cpu_usage > 70 ? 'bg-geist-error' : 'bg-geist-success'}`} 
-                          style={{ width: `${m.cpu_usage}%` }}
-                        />
-                      </div>
+                    <td className="px-10 py-5 border-r border-accents-2 text-geist-success font-black italic text-sm tabular-nums">
+                      {m.local_lat.toFixed(2)}ns
                     </td>
                     <td className="px-10 py-5 text-accents-5 italic tracking-tighter text-xs font-bold">
                       DATA_PACKET_0x{idx.toString(16).toUpperCase().padStart(4, '0')}
@@ -371,7 +567,7 @@ export default function Dashboard() {
                 ))}
                 {metrics.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-24 text-center">
+                    <td colSpan={6} className="py-24 text-center">
                        <div className="flex flex-col items-center gap-4 text-accents-3">
                           <Zap size={30} className="animate-pulse" />
                           <p className="text-xl italic font-black uppercase tracking-[0.2em] opacity-30">Awaiting System Data Stream...</p>
@@ -386,6 +582,7 @@ export default function Dashboard() {
       </main>
 
       <Footer />
+      <InstallModal isOpen={isInstallModalOpen} onClose={() => setIsInstallModalOpen(false)} />
     </div>
   );
 }

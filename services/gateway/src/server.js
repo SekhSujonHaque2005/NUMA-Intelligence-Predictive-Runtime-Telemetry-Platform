@@ -46,12 +46,21 @@ async function SendMetrics(call, callback) {
   const source = (data.source || "unknown").trim();
   const cpu_id = parseInt(data.cpu_id ?? data.cpuId ?? 0);
   const cpu_usage = parseFloat(data.cpu_usage ?? data.cpuUsage ?? 0);
+  const node_id = parseInt(data.node_id ?? data.nodeId ?? 0);
+  const memory_mb = parseFloat(data.memory_mb ?? data.memoryMb ?? 0);
+  const local_lat = parseFloat(data.local_latency_ns ?? data.localLatencyNs ?? 0);
+  const remote_lat = parseFloat(data.remote_latency_ns ?? data.remoteLatencyNs ?? 0);
+  const timestamp_ms = data.timestamp_ms ? parseInt(data.timestamp_ms) : Date.now();
 
   const metric = { 
     source, 
     cpu_id, 
     cpu_usage, 
-    timestamp: new Date().toLocaleTimeString() 
+    node_id,
+    memory_mb,
+    local_lat,
+    remote_lat,
+    timestamp: new Date(timestamp_ms).toLocaleTimeString() 
   };
 
   // Broadcast to all connected WebSocket clients
@@ -64,8 +73,8 @@ async function SendMetrics(call, callback) {
 
   try {
     await db.query(
-      "INSERT INTO metrics (source, cpu_id, cpu_usage, timestamp) VALUES ($1, $2, $3, $4)",
-      [source, cpu_id, cpu_usage, new Date()]
+      "INSERT INTO metrics (source, cpu_id, cpu_usage, node_id, memory_mb, local_latency, remote_latency, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+      [source, cpu_id, cpu_usage, node_id, memory_mb, local_lat, remote_lat, new Date(timestamp_ms)]
     );
     
     // Log pulse occasionally
@@ -92,7 +101,7 @@ app.get("/api/metrics/realtime", async (req, res) => {
   try {
     const query = `
       SELECT DISTINCT ON (source, cpu_id)
-        id, source, cpu_id, cpu_usage, timestamp
+        id, source, cpu_id, cpu_usage, node_id, memory_mb, local_latency, remote_latency, timestamp
       FROM metrics
       ORDER BY source, cpu_id, timestamp DESC;
     `;
@@ -113,6 +122,10 @@ const initDb = async () => {
         source VARCHAR(50),
         cpu_id INTEGER,
         cpu_usage DOUBLE PRECISION,
+        node_id INTEGER,
+        memory_mb DOUBLE PRECISION,
+        local_latency DOUBLE PRECISION,
+        remote_latency DOUBLE PRECISION,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
