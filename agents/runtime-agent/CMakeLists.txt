@@ -13,7 +13,8 @@ find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
 
 # Generate C++ files from .proto
-set(PROTO_SRC "../../packages/proto/runtime.proto")
+set(PROTO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../packages/proto")
+set(PROTO_SRC "${PROTO_DIR}/runtime.proto")
 protobuf_generate_cpp(PROTO_HEADERS PROTO_SOURCES ${PROTO_SRC})
 
 # Manual gRPC generation as it's not always in find_package
@@ -21,7 +22,7 @@ set(GRPC_PB_CC "${CMAKE_CURRENT_BINARY_DIR}/runtime.grpc.pb.cc")
 set(GRPC_PB_H "${CMAKE_CURRENT_BINARY_DIR}/runtime.grpc.pb.h")
 add_custom_command(
     OUTPUT "${GRPC_PB_CC}" "${GRPC_PB_H}"
-    COMMAND protoc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --grpc_out="${CMAKE_CURRENT_BINARY_DIR}" -I "../../packages/proto" "${PROTO_SRC}"
+    COMMAND protoc --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` --grpc_out="${CMAKE_CURRENT_BINARY_DIR}" -I "${PROTO_DIR}" "${PROTO_SRC}"
     DEPENDS "${PROTO_SRC}"
 )
 
@@ -42,7 +43,7 @@ include_directories(
     ${GRPC_INCLUDE_DIRS}
     ${Protobuf_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ../../packages/proto
+    ${PROTO_DIR}
 )
 
 # Platform-specific linking
