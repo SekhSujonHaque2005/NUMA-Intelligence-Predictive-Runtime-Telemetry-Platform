@@ -16,15 +16,16 @@ if (!(Test-Path "CMakeLists.txt")) {
 # 2. Build the Agent
 if (Get-Command "cmake" -ErrorAction SilentlyContinue) {
     Write-Host "🛠️  Building Agent..." -ForegroundColor Cyan
+    cd agents/runtime-agent
     if (!(Test-Path "build")) { New-Item -ItemType Directory -Force -Path "build" }
     cd build
     cmake ..
     cmake --build . --config Release
     if (Test-Path "Release/runtime_agent.exe") {
-        Copy-Item "Release/runtime_agent.exe" ".."
+        Copy-Item "Release/runtime_agent.exe" "../../.."
         Write-Host "✨ Build Successful!" -ForegroundColor Green
     }
-    cd ..
+    cd ../../..
 } else {
     Write-Host "⚠️  CMake not found. Please install CMake and Visual Studio C++ Build Tools." -ForegroundColor Yellow
 }

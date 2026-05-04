@@ -29,17 +29,18 @@ if [[ "$OS_TYPE" == "Linux" ]]; then
     fi
 fi
 
-# 3. Build Agent
+# 2. Build Agent
 echo -e "🏗  Building high-performance telemetry engine..."
+cd agents/runtime-agent
 mkdir -p build && cd build
 if command -v cmake >/dev/null 2>&1; then
     cmake .. >/dev/null && make -j$(nproc) >/dev/null
     if [ -f "runtime_agent" ]; then
-        cp runtime_agent ..
+        cp runtime_agent ../../../
         echo -e "${GREEN}✨ Build Successful!${NC}"
     fi
 fi
-cd ..
+cd ../../../
 
 # 4. Final Instructions
 FINAL_URL=${GATEWAY_ADDR:-"https://numa-intelligence-predictive-runtime.onrender.com"}
