@@ -19,7 +19,8 @@ if (Get-Command "cmake" -ErrorAction SilentlyContinue) {
     cd agents/runtime-agent
     if (!(Test-Path "build")) { New-Item -ItemType Directory -Force -Path "build" }
     cd build
-    cmake ..
+    # Force use of Visual Studio generator for better compatibility
+    cmake .. -G "Visual Studio 17 2022" -A x64
     cmake --build . --config Release
     if (Test-Path "Release/runtime_agent.exe") {
         Copy-Item "Release/runtime_agent.exe" "../../.."
@@ -43,4 +44,8 @@ Write-Host "`-----------------------------------`n"
 
 if (!(Get-Command "cmake" -ErrorAction SilentlyContinue)) {
     Write-Host "💡 Tip: To build the agent, download CMake here: https://cmake.org/download/" -ForegroundColor Gray
+}
+
+if (!(Test-Path "runtime_agent.exe")) {
+    Write-Host "`n⚠️  Build failed. Please try running this command from the 'Developer PowerShell for VS 2022' terminal." -ForegroundColor Yellow
 }
