@@ -23,10 +23,10 @@ inline const char* level_str(Level l) {
 
 inline const char* level_color(Level l) {
     switch (l) {
-        case Level::DEBUG: return "\033[36m";  // cyan
-        case Level::INFO:  return "\033[32m";  // green
-        case Level::WARN:  return "\033[33m";  // yellow
-        case Level::ERROR: return "\033[31m";  // red
+        case Level::DEBUG: return "\033[36m";
+        case Level::INFO:  return "\033[32m";
+        case Level::WARN:  return "\033[33m";
+        case Level::ERROR: return "\033[31m";
     }
     return "\033[0m";
 }
@@ -51,7 +51,6 @@ inline std::string thread_tag() {
     return oss.str();
 }
 
-// Global mutex to prevent interleaved log lines
 inline std::mutex& log_mutex() {
     static std::mutex mtx;
     return mtx;
@@ -76,4 +75,9 @@ inline void info(const std::string& msg)  { log(Level::INFO,  msg); }
 inline void warn(const std::string& msg)  { log(Level::WARN,  msg); }
 inline void error(const std::string& msg) { log(Level::ERROR, msg); }
 
-} // namespace Log
+}
+
+#define LOG_DEBUG(msg) do { std::ostringstream _oss; _oss << msg; Log::debug(_oss.str()); } while(0)
+#define LOG_INFO(msg)  do { std::ostringstream _oss; _oss << msg; Log::info(_oss.str()); } while(0)
+#define LOG_WARN(msg)  do { std::ostringstream _oss; _oss << msg; Log::warn(_oss.str()); } while(0)
+#define LOG_ERROR(msg) do { std::ostringstream _oss; _oss << msg; Log::error(_oss.str()); } while(0)

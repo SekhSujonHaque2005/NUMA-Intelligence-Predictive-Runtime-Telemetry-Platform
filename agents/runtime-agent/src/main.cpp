@@ -18,11 +18,10 @@ int main() {
     std::signal(SIGINT,  signal_handler);
     std::signal(SIGTERM, signal_handler);
 
-    // Read gateway address from environment (with sensible default)
     const char* env = std::getenv("GATEWAY_ADDR");
     std::string gateway = env ? env : "localhost:50051";
 
-    Log::info("🚀 C++ NUMA Agent starting");
+    Log::info("C++ NUMA Agent starting");
     Log::info("Gateway: " + gateway);
 
     Runtime runtime(4, gateway);
@@ -32,9 +31,9 @@ int main() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    Log::info("🛑 Shutting down...");
+    Log::info("Shutting down...");
     runtime.stop();
-    Log::info("✅ Clean exit");
+    Log::info("Clean exit");
 
     return 0;
 }

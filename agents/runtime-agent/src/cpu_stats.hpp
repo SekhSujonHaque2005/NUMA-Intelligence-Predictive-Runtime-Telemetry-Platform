@@ -13,8 +13,6 @@
 #include <mach/processor_info.h>
 #include <mach/mach_host.h>
 #endif
-
-/// Reads real per-CPU usage from system APIs (Linux, Windows, macOS).
 class CpuStats {
 public:
 #if defined(_WIN32)
@@ -151,8 +149,6 @@ private:
 
         std::string line;
         while (std::getline(f, line)) {
-            // Per-CPU lines: "cpu0 user nice system idle iowait irq softirq steal ..."
-            // Skip the aggregate "cpu " line (no digit after "cpu")
             if (line.compare(0, 3, "cpu") != 0) continue;
             if (line.size() < 4 || !std::isdigit(line[3])) continue;
 
@@ -170,7 +166,6 @@ private:
     }
 
     static uint64_t parse_meminfo_kb(const std::string& line) {
-        // Extract the numeric value from a line like "Node 0 MemTotal:   16384 kB"
         uint64_t val = 0;
         bool found_colon = false;
         std::string num_str;

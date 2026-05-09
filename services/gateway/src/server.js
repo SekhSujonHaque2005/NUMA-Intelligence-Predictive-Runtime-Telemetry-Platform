@@ -20,8 +20,6 @@ const db = new Pool(process.env.DATABASE_URL ? {
   port: 5432,
 });
 
-
-// Load proto
 const PROTO_PATH = path.resolve("../../packages/proto/runtime.proto");
 
 const packageDef = protoLoader.loadSync(PROTO_PATH, {
@@ -32,17 +30,11 @@ const packageDef = protoLoader.loadSync(PROTO_PATH, {
   oneofs: true,
 });
 const grpcObject = grpc.loadPackageDefinition(packageDef);
-
 const runtimePackage = grpcObject.runtime;
-
-// WebSocket Broadcast Helper
 const clients = new Set();
 
-// SERVICE IMPLEMENTATION
 async function SendMetrics(call, callback) {
   const data = call.request;
-
-  // Robustly handle both snake_case and camelCase
   const source = (data.source || "unknown").trim();
   const cpu_id = parseInt(data.cpu_id ?? data.cpuId ?? 0);
   const cpu_usage = parseFloat(data.cpu_usage ?? data.cpuUsage ?? 0);
@@ -63,10 +55,9 @@ async function SendMetrics(call, callback) {
     timestamp: new Date(timestamp_ms).toLocaleTimeString() 
   };
 
-  // Broadcast to all connected WebSocket clients
-  const message = JSON.stringify([metric]); // Dashboard expects an array
+  const message = JSON.stringify([metric]);
   clients.forEach(client => {
-    if (client.readyState === 1) { // 1 = OPEN
+    if (client.readyState === 1) {
       client.send(message);
     }
   });
@@ -77,9 +68,8 @@ async function SendMetrics(call, callback) {
       [source, cpu_id, cpu_usage, node_id, memory_mb, local_lat, remote_lat, new Date(timestamp_ms)]
     );
     
-    // Log pulse occasionally
     if (Math.random() < 0.1) {
-      console.log(`📡 Ingesting pulse from [${source}] Core ${cpu_id}: ${cpu_usage.toFixed(1)}%`);
+      console.log(`Ingesting pulse from [${source}] Core ${cpu_id}: ${cpu_usage.toFixed(1)}%`);
     }
 
     callback(null, data);
@@ -89,14 +79,11 @@ async function SendMetrics(call, callback) {
   }
 }
 
-// HTTP API SERVER (Express)
 const app = express();
 app.use(cors());
 
-// Health check endpoint
 app.get("/api/health", (req, res) => res.json({ status: "healthy" }));
 
-// Get real-time metrics (latest record per source/cpu_id)
 app.get("/api/metrics/realtime", async (req, res) => {
   try {
     const query = `
@@ -112,10 +99,10 @@ app.get("/api/metrics/realtime", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch metrics" });
   }
 });
-// Database Initialization
+
 const initDb = async () => {
   try {
-    console.log("🛠  Initializing Database...");
+    console.log("Initializing Database...");
     await db.query(`
       CREATE TABLE IF NOT EXISTS metrics (
         id SERIAL PRIMARY KEY,
@@ -129,39 +116,59 @@ const initDb = async () => {
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log("✅ Table 'metrics' is ready.");
     
-    // Clear table on start
-    console.log("🧹 Cleaning old metrics data...");
+    const columns = [
+      ["node_id", "INTEGER"],
+      ["memory_mb", "DOUBLE PRECISION"],
+      ["local_latency", "DOUBLE PRECISION"],
+      ["remote_latency", "DOUBLE PRECISION"]
+    ];
+
+    for (const [col, type] of columns) {
+      try {
+        const checkRes = await db.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name='metrics' AND column_name=$1
+        `, [col]);
+        
+        if (checkRes.rowCount === 0) {
+          await db.query(`ALTER TABLE metrics ADD COLUMN ${col} ${type}`);
+          console.log(`Added missing column: ${col}`);
+        }
+      } catch (err) {
+        console.error(`Migration failed for column ${col}:`, err.message);
+      }
+    }
+
+    console.log("Table 'metrics' is ready with all required columns.");
+    console.log("Cleaning old metrics data...");
     await db.query("TRUNCATE TABLE metrics");
   } catch (err) {
-    console.error("❌ Database initialization failed:", err);
+    console.error("Database initialization failed:", err);
   }
 };
 
 const startServer = async () => {
-  // Ensure DB is ready before listening
   await initDb();
 
-  // START HTTP & WebSocket SERVER
   const HTTP_PORT = process.env.PORT || 3001;
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer });
 
   wss.on("connection", (ws) => {
-    console.log("🔌 WebSocket client connected");
+    console.log("WebSocket client connected");
     clients.add(ws);
     ws.on("close", () => {
-      console.log("🔌 WebSocket client disconnected");
+      console.log("WebSocket client disconnected");
       clients.delete(ws);
     });
   });
 
   httpServer.listen(HTTP_PORT, "0.0.0.0", () => {
-    console.log(`🌐 Dashboard API & WebSocket running on http://localhost:${HTTP_PORT}`);
+    console.log(`Dashboard API & WebSocket running on http://localhost:${HTTP_PORT}`);
   });
 
-  // START gRPC SERVER
   const server = new grpc.Server();
 
   server.addService(runtimePackage.RuntimeService.service, {
@@ -176,7 +183,7 @@ const startServer = async () => {
         console.error("Failed to bind gRPC server:", err);
         return;
       }
-      console.log(`🚀 gRPC Gateway running on port ${port}`);
+      console.log(`gRPC Gateway running on port ${port}`);
     }
   );
 };

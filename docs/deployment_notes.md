@@ -18,3 +18,9 @@
 - Render RAM: 512MB. 
 - Estimates: Node (150MB) + Agents (50MB) + OS/Overhead (50MB) = ~250MB. (Safe)
 - Build Time: C++ and Rust compilation might take 2-4 mins. (Safe)
+
+## Deployment Readiness
+- [x] gRPC Gateway migration logic implemented (auto-updates DB schema).
+- [x] Node.js server cleaned of non-standard symbols for better log readability.
+- [x] Database initialization script synchronized with production telemetry.
+- [x] Environment variables (`DATABASE_URL`, `GATEWAY_ADDR`) verified.

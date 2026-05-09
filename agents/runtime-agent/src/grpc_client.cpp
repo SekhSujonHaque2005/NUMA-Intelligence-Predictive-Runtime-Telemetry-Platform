@@ -12,12 +12,10 @@ void GrpcClient::send(int cpu_id, float usage, int node_id, float memory_mb,
                       double local_lat, double remote_lat, uint64_t timestamp) {
     constexpr int MAX_RETRIES = 3;
     constexpr int BASE_BACKOFF_MS = 100;
-
-    // --- Backpressure / Circuit Breaker ---
     if (consecutive_failures_ > 5) {
         auto now = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(now - last_success_time_).count() < 10) {
-            return; // Stay quiet for 10s
+            return;
         }
     }
 
@@ -50,7 +48,7 @@ void GrpcClient::send(int cpu_id, float usage, int node_id, float memory_mb,
         
         auto code = status.error_code();
         if (code != grpc::StatusCode::UNAVAILABLE && code != grpc::StatusCode::DEADLINE_EXCEEDED) {
-            return; // Non-retryable
+            return;
         }
 
         if (attempt < MAX_RETRIES) {

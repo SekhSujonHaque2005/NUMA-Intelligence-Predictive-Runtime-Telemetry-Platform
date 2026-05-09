@@ -21,10 +21,8 @@ private:
     std::vector<std::thread> workers;
     std::atomic<bool> running;
 
-    // Shared gRPC channel — thread-safe, multiplexes over one TCP connection
     std::shared_ptr<grpc::Channel> channel_;
 
-    // Graceful shutdown signaling
     std::mutex mtx_;
     std::condition_variable cv_;
 

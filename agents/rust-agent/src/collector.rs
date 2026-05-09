@@ -5,11 +5,8 @@ use std::{thread, time::Duration};
 pub fn collect_metrics() -> Vec<Metrics> {
     let mut system = System::new_all();
 
-    // First refresh establishes a baseline
     system.refresh_cpu_usage();
-    // Wait briefly so sysinfo can compute the delta
     thread::sleep(Duration::from_millis(200));
-    // Second refresh calculates actual usage
     system.refresh_cpu_usage();
 
     let mut result = Vec::new();
@@ -23,8 +20,8 @@ pub fn collect_metrics() -> Vec<Metrics> {
         result.push(Metrics {
             cpu_id: i,
             cpu_usage: cpu.cpu_usage(),
-            node_id: 0, // Placeholder
-            memory_mb: 0.0, // Placeholder
+            node_id: 0,
+            memory_mb: 0.0,
             timestamp_ms: now,
         });
     }

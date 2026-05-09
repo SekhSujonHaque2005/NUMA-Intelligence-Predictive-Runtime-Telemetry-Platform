@@ -8,7 +8,6 @@
 #include <numa.h>
 #endif
 
-/// A high-precision micro-benchmark for NUMA memory latency.
 class NumaBench {
 public:
     struct LatencyResult {
@@ -16,8 +15,6 @@ public:
         double remote_latency_ns;
     };
 
-    /// Runs a small memory latency test on the current thread's node vs a remote node.
-    /// Warning: Allocates and accesses memory. Use small sizes for frequent monitoring.
     static LatencyResult run(int local_node, size_t size_mb = 1) {
         LatencyResult result = {0.0, 0.0};
 #ifdef __linux__
@@ -34,7 +31,7 @@ public:
         if (remote_node != local_node) {
             result.remote_latency_ns = measure_node_latency(remote_node, size_mb);
         } else {
-            result.remote_latency_ns = result.local_latency_ns; // Single-node system
+            result.remote_latency_ns = result.local_latency_ns;
         }
 #else
         (void)local_node;
@@ -50,7 +47,6 @@ private:
         void* ptr = numa_alloc_onnode(size, node);
         if (!ptr) return 0.0;
 
-        // Initialize with random indices for pointer chasing (prevents hardware prefetching)
         size_t num_elements = size / sizeof(void*);
         void** data = static_cast<void**>(ptr);
         
@@ -61,26 +57,21 @@ private:
         std::mt19937 g(rd());
         std::shuffle(indices.begin(), indices.end(), g);
 
-        // Build a cyclic pointer chain
         for (size_t i = 0; i < num_elements - 1; ++i) {
             data[indices[i]] = &data[indices[i+1]];
         }
         data[indices[num_elements - 1]] = &data[indices[0]];
 
-        // Benchmark pointer chasing
         auto start = std::chrono::high_resolution_clock::now();
         
         void** volatile curr = &data[indices[0]];
-        const size_t iterations = 1000000; // 1M hops
+        const size_t iterations = 1000000;
         for (size_t i = 0; i < iterations; ++i) {
             curr = static_cast<void**>(*curr);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
-        
-        // Prevent optimizing away the final result
-        (void)curr; 
-        
+        (void)curr;
         numa_free(ptr, size);
 
         auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
