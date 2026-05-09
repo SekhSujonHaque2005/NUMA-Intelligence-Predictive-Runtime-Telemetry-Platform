@@ -47,10 +47,18 @@ Runtime::Runtime(int threads, const std::string& gateway_addr)
 
 void Runtime::start() {
     std::string addr = gateway_addr_;
+    bool use_ssl = (addr.find("https://") == 0);
+    
     if (addr.find("http://") == 0)  addr = addr.substr(7);
-    if (addr.find("https://") == 0) addr = addr.substr(8);
-    channel_ = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
-    LOG_INFO("Shared gRPC channel created -> " << addr);
+    else if (addr.find("https://") == 0) addr = addr.substr(8);
+    
+    if (use_ssl) {
+        channel_ = grpc::CreateChannel(addr, grpc::SslCredentials(grpc::SslCredentialsOptions()));
+        LOG_INFO("Shared gRPC SSL channel created -> " << addr);
+    } else {
+        channel_ = grpc::CreateChannel(addr, grpc::InsecureChannelCredentials());
+        LOG_INFO("Shared gRPC insecure channel created -> " << addr);
+    }
 
     running.store(true);
 

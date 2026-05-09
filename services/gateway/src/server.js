@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { createServer } from "http";
+import http from "http";
 
 const { Pool } = pkg;
 
@@ -152,7 +153,7 @@ const initDb = async () => {
 const startServer = async () => {
   await initDb();
 
-  const HTTP_PORT = process.env.PORT || 3001;
+  const PORT = process.env.PORT || 3001;
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer });
 
@@ -165,27 +166,45 @@ const startServer = async () => {
     });
   });
 
-  httpServer.listen(HTTP_PORT, "0.0.0.0", () => {
-    console.log(`Dashboard API & WebSocket running on http://localhost:${HTTP_PORT}`);
-  });
+  const grpcServer = new grpc.Server();
+  grpcServer.addService(runtimePackage.RuntimeService.service, { SendMetrics });
 
-  const server = new grpc.Server();
-
-  server.addService(runtimePackage.RuntimeService.service, {
-    SendMetrics,
-  });
-
-  server.bindAsync(
-    "0.0.0.0:50051",
-    grpc.ServerCredentials.createInsecure(),
-    (err, port) => {
-      if (err) {
-        console.error("Failed to bind gRPC server:", err);
-        return;
-      }
-      console.log(`gRPC Gateway running on port ${port}`);
+  const GRPC_PORT = 50051;
+  grpcServer.bindAsync(`0.0.0.0:${GRPC_PORT}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
+    if (err) {
+      console.error("gRPC failed to bind:", err);
+      return;
     }
-  );
+    console.log(`gRPC Internal Server running on port ${port}`);
+  });
+
+  const finalServer = createServer((req, res) => {
+    if (req.headers["content-type"] && req.headers["content-type"].includes("application/grpc")) {
+      const proxy = http.request({
+        host: "localhost",
+        port: GRPC_PORT,
+        method: req.method,
+        path: req.url,
+        headers: req.headers,
+      }, (proxyRes) => {
+        res.writeHead(proxyRes.statusCode, proxyRes.headers);
+        proxyRes.pipe(res);
+      });
+      req.pipe(proxy);
+    } else {
+      app(req, res);
+    }
+  });
+
+  finalServer.on('upgrade', (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit('connection', ws, req);
+    });
+  });
+
+  finalServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`Unified Gateway running on port ${PORT} (Supporting gRPC + HTTP + WS)`);
+  });
 };
 
 startServer();
